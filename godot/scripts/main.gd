@@ -4,11 +4,14 @@ const RunStateScript = preload("res://scripts/run_state.gd")
 
 var state: RunState
 var content: VBoxContainer
+var content_root: MarginContainer
 var hand_grid: GridContainer
 var status_label: Label
 var enemy_label: Label
 var intent_label: Label
 var log_label: Label
+var end_turn_button: Button
+var result_shown := false
 
 const BG := Color("#17141b")
 const PANEL := Color("#26212b")
@@ -17,6 +20,7 @@ const GOLD := Color("#d5ad70")
 const TEXT := Color("#eee5d8")
 const MUTED := Color("#b6a99a")
 const RED := Color("#b85d5d")
+const BLUE := Color("#7898b8")
 
 func _ready() -> void:
 	_build_background()
@@ -29,25 +33,32 @@ func _build_background() -> void:
 	add_child(background)
 
 func _clear_content() -> void:
-	if content != null and is_instance_valid(content):
-		content.queue_free()
+	if content_root != null and is_instance_valid(content_root):
+		content_root.queue_free()
+	content_root = null
 	content = null
+	hand_grid = null
+	status_label = null
+	enemy_label = null
+	intent_label = null
+	log_label = null
+	end_turn_button = null
 
 func _new_content() -> VBoxContainer:
 	_clear_content()
-	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 22)
-	margin.add_theme_constant_override("margin_top", 24)
-	margin.add_theme_constant_override("margin_right", 22)
-	margin.add_theme_constant_override("margin_bottom", 24)
-	add_child(margin)
+	content_root = MarginContainer.new()
+	content_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	content_root.add_theme_constant_override("margin_left", 22)
+	content_root.add_theme_constant_override("margin_top", 24)
+	content_root.add_theme_constant_override("margin_right", 22)
+	content_root.add_theme_constant_override("margin_bottom", 24)
+	add_child(content_root)
 
 	content = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 14)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.add_child(content)
+	content_root.add_child(content)
 	return content
 
 func _make_label(value: String, font_size: int, color: Color = TEXT) -> Label:
@@ -96,6 +107,26 @@ func _make_button(value: String, minimum_height: int = 64) -> Button:
 	button.add_theme_stylebox_override("hover", hover)
 	return button
 
+func _make_card_button(card: Dictionary, index: int) -> Button:
+	var title := str(card.get("name", "Карта"))
+	var cost := int(card.get("cost", 0))
+	var description := str(card.get("description", ""))
+	var card_button := _make_button("%s\n✦ %d энергии\n\n%s" % [
+		title, cost, description
+	], 156)
+	card_button.add_theme_font_size_override("font_size", 17)
+	var style := StyleBoxFlat.new()
+	style.bg_color = PANEL_LIGHT
+	style.border_color = RED if card.get("type", "attack") == "attack" else BLUE
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(12)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	card_button.add_theme_stylebox_override("normal", style)
+	card_button.disabled = state.phase != "player" or cost > state.energy
+	card_button.pressed.connect(_on_card_pressed.bind(index))
+	return card_button
+
 func _show_title() -> void:
 	var root := _new_content()
 	root.add_spacer(false)
@@ -124,10 +155,11 @@ func _start_combat() -> void:
 	_show_battle()
 
 func _show_battle() -> void:
+	result_shown = false
 	var root := _new_content()
 	root.add_child(_make_label("ASHEN DECKS", 24, GOLD))
 
-	status_label = _make_label("", 18)
+	status_label = _make_label("", 17)
 	root.add_child(status_label)
 
 	var enemy_panel := _make_panel()
@@ -148,10 +180,10 @@ func _show_battle() -> void:
 	hand_grid.add_theme_constant_override("v_separation", 10)
 	root.add_child(hand_grid)
 
-	log_label = _make_label("Выбери карту, чтобы сыграть её.", 15, MUTED)
+	log_label = _make_label("", 15, MUTED)
 	root.add_child(log_label)
 
-	var end_turn_button := _make_button("ЗАВЕРШИТЬ ХОД", 68)
+	end_turn_button = _make_button("ЗАВЕРШИТЬ ХОД", 68)
 	end_turn_button.pressed.connect(_on_end_turn)
 	root.add_child(end_turn_button)
 
@@ -161,36 +193,28 @@ func _refresh_battle() -> void:
 	if state == null or hand_grid == null or not is_instance_valid(hand_grid):
 		return
 
-	status_label.text = "Здоровье: %d / %d    Блок: %d    Энергия: %d    Ход: %d" % [
-		state.player_hp, state.player_max_hp, state.player_block, state.energy, state.turn
+	status_label.text = "Здоровье %d/%d   •   Блок %d   •   Энергия %d   •   Ход %d\nКолода: %d   •   Сброс: %d" % [
+		state.player_hp, state.player_max_hp, state.player_block, state.energy, state.turn,
+		state.draw_pile.size(), state.discard_pile.size()
 	]
-	enemy_label.text = "%s
-Здоровье: %d / %d" % [state.enemy_name, state.enemy_hp, state.enemy_max_hp]
+	enemy_label.text = "%s\nЗдоровье: %d / %d   •   Блок: %d" % [
+		state.enemy_name, state.enemy_hp, state.enemy_max_hp, state.enemy_block
+	]
 	intent_label.text = state.get_intent_text()
 
 	for child in hand_grid.get_children():
 		child.queue_free()
 
 	for i in range(state.hand.size()):
-		var card: Dictionary = state.hand[i]
-		var card_button := _make_button("%s\nЭнергия: %d\n\n%s" % [
-			card["name"], card["cost"], card["description"]
-		], 150)
-		card_button.add_theme_font_size_override("font_size", 17)
-		card_button.disabled = state.phase != "player" or int(card["cost"]) > state.energy
-		card_button.pressed.connect(_on_card_pressed.bind(i))
-		hand_grid.add_child(card_button)
+		hand_grid.add_child(_make_card_button(state.hand[i], i))
 
-	if state.phase == "victory":
-		log_label.text = "Победа. Страж рассыпался в пепел."
+	log_label.text = state.last_message
+	end_turn_button.disabled = state.phase != "player"
+
+	if state.phase == "victory" and not result_shown:
 		_show_result("ПОБЕДА", "Ты пережил первую встречу.")
-	elif state.phase == "defeat":
-		log_label.text = "Забег окончен."
+	elif state.phase == "defeat" and not result_shown:
 		_show_result("ПОРАЖЕНИЕ", "Руины забрали ещё одну жизнь.")
-	elif state.phase == "enemy":
-		log_label.text = "Ход противника..."
-	else:
-		log_label.text = "Выбери карту, чтобы сыграть её."
 
 func _on_card_pressed(index: int) -> void:
 	if state == null:
@@ -203,8 +227,9 @@ func _on_end_turn() -> void:
 	state.end_turn()
 
 func _show_result(heading: String, description: String) -> void:
-	if hand_grid == null or not is_instance_valid(hand_grid):
+	if result_shown or content == null:
 		return
+	result_shown = true
 	for child in hand_grid.get_children():
 		child.queue_free()
 	var result_panel := _make_panel()
@@ -214,6 +239,6 @@ func _show_result(heading: String, description: String) -> void:
 	result_panel.add_child(stack)
 	stack.add_child(_make_label(heading, 26, GOLD))
 	stack.add_child(_make_label(description, 17, MUTED))
-	var again := _make_button("НОВЫЙ ЗАБЕГ", 64)
+	var again := _make_button("НОВЫЙ БОЙ", 64)
 	again.pressed.connect(_start_combat)
 	content.add_child(again)
