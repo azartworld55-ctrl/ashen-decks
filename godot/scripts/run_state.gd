@@ -261,3 +261,91 @@ func claim_reward(index: int) -> bool:
 	run_floor += 1
 	_start_encounter()
 	return true
+
+func to_save_data() -> Dictionary:
+	return {
+		"save_version": 1,
+		"player_hp": player_hp,
+		"player_max_hp": player_max_hp,
+		"player_block": player_block,
+		"energy": energy,
+		"turn": turn,
+		"run_floor": run_floor,
+		"enemy_name": enemy_name,
+		"enemy_hp": enemy_hp,
+		"enemy_max_hp": enemy_max_hp,
+		"enemy_block": enemy_block,
+		"enemy_intent": enemy_intent,
+		"enemy_attack": enemy_attack,
+		"enemy_heavy_attack": enemy_heavy_attack,
+		"enemy_guard": enemy_guard,
+		"deck": deck.duplicate(true),
+		"draw_pile": draw_pile.duplicate(true),
+		"discard_pile": discard_pile.duplicate(true),
+		"hand": hand.duplicate(true),
+		"reward_options": reward_options.duplicate(true),
+		"phase": phase,
+		"last_message": last_message
+	}
+
+func load_save_data(data: Dictionary) -> bool:
+	if int(data.get("save_version", 0)) != 1:
+		return false
+
+	var saved_deck: Variant = data.get("deck", [])
+	if not (saved_deck is Array) or saved_deck.is_empty() or saved_deck.size() > 100:
+		return false
+
+	var loaded_floor := int(data.get("run_floor", 0))
+	var loaded_max_hp := int(data.get("player_max_hp", 0))
+	var loaded_hp := int(data.get("player_hp", -1))
+	var loaded_enemy_max_hp := int(data.get("enemy_max_hp", 0))
+	var loaded_enemy_hp := int(data.get("enemy_hp", -1))
+	var loaded_phase := str(data.get("phase", ""))
+	if loaded_floor < 1 or loaded_floor > MAX_FLOOR:
+		return false
+	if loaded_max_hp < 1 or loaded_hp < 1 or loaded_hp > loaded_max_hp:
+		return false
+	if loaded_enemy_max_hp < 1 or loaded_enemy_hp < 0 or loaded_enemy_hp > loaded_enemy_max_hp:
+		return false
+	if loaded_phase not in ["player", "victory"]:
+		return false
+
+	var loaded_deck := _copy_card_array(saved_deck)
+	if loaded_deck.is_empty():
+		return false
+
+	deck = loaded_deck
+	draw_pile = _copy_card_array(data.get("draw_pile", []))
+	discard_pile = _copy_card_array(data.get("discard_pile", []))
+	hand = _copy_card_array(data.get("hand", []))
+	reward_options = _copy_card_array(data.get("reward_options", []))
+	if hand.size() > HAND_SIZE or reward_options.size() > 3:
+		return false
+
+	player_hp = loaded_hp
+	player_max_hp = loaded_max_hp
+	player_block = maxi(0, int(data.get("player_block", 0)))
+	energy = clampi(int(data.get("energy", STARTING_ENERGY)), 0, 10)
+	turn = maxi(1, int(data.get("turn", 1)))
+	run_floor = loaded_floor
+	enemy_name = str(data.get("enemy_name", "Неизвестный противник"))
+	enemy_hp = loaded_enemy_hp
+	enemy_max_hp = loaded_enemy_max_hp
+	enemy_block = maxi(0, int(data.get("enemy_block", 0)))
+	enemy_intent = str(data.get("enemy_intent", "attack"))
+	enemy_attack = maxi(1, int(data.get("enemy_attack", 7)))
+	enemy_heavy_attack = maxi(1, int(data.get("enemy_heavy_attack", 10)))
+	enemy_guard = maxi(0, int(data.get("enemy_guard", 4)))
+	phase = loaded_phase
+	last_message = str(data.get("last_message", "Забег восстановлен."))
+	return true
+
+func _copy_card_array(value: Variant) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if not (value is Array):
+		return result
+	for card in value:
+		if card is Dictionary:
+			result.append(card.duplicate(true))
+	return result
