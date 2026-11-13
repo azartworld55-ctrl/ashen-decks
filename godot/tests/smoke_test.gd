@@ -144,6 +144,47 @@ func _initialize() -> void:
     assert(energy_probe.play_card(0), "Energy card should still resolve at the cap")
     assert(energy_probe.energy == 5, "Energy card should not exceed the five-energy cap")
 
+    var draw_probe = RunStateScript.new()
+    draw_probe.start_combat()
+    draw_probe.hand.clear()
+    draw_probe.draw_pile = [
+        {"name": "Карта А", "cost": 0, "damage": 0, "block": 0, "heal": 0},
+        {"name": "Карта Б", "cost": 0, "damage": 0, "block": 0, "heal": 0}
+    ]
+    draw_probe.hand.append({
+        "name": "Шёпот колодца",
+        "cost": 1,
+        "description": "Добирает две карты.",
+        "type": "skill",
+        "damage": 0,
+        "block": 0,
+        "heal": 0,
+        "draw": 2
+    })
+    assert(draw_probe.play_card(0), "Draw card should resolve")
+    assert(draw_probe.hand.size() == 2, "Draw effect should add two cards to hand")
+    assert(draw_probe.discard_pile.size() == 1, "Draw card itself should enter discard pile")
+
+    draw_probe.hand.clear()
+    for i in range(4):
+        draw_probe.hand.append({"name": "Рука %d" % i, "cost": 0, "damage": 0, "block": 0, "heal": 0})
+    draw_probe.hand.append({
+        "name": "Переполнение",
+        "cost": 0,
+        "description": "Проверка лимита руки.",
+        "type": "skill",
+        "damage": 0,
+        "block": 0,
+        "heal": 0,
+        "draw": 2
+    })
+    draw_probe.draw_pile = [
+        {"name": "Добор 1", "cost": 0, "damage": 0, "block": 0, "heal": 0},
+        {"name": "Добор 2", "cost": 0, "damage": 0, "block": 0, "heal": 0}
+    ]
+    assert(draw_probe.play_card(4), "Draw card should resolve near hand limit")
+    assert(draw_probe.hand.size() == 5, "Draw effect must respect the hand-size limit")
+
     var intent_probe = RunStateScript.new()
     intent_probe.start_combat()
     intent_probe.turn = 2
@@ -164,5 +205,5 @@ func _initialize() -> void:
     intent_probe._set_enemy_intent()
     assert(intent_probe.enemy_intent == "heavy_attack", "Boss should use a heavy attack on turn three")
 
-    print("Godot route, card effects, enemy intent patterns and save tests passed.")
+    print("Godot route, card effects, draw limits, enemy intent patterns and save tests passed.")
     quit()
