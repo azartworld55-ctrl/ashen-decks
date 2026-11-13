@@ -87,3 +87,13 @@ func _initialize() -> void:
 
 	print("Godot run progression smoke test passed.")
 	quit()
+
+	var save_manager = preload("res://scripts/save_manager.gd")
+	assert(save_manager.save_run(state), "Run should save to user storage")
+	var restored = RunStateScript.new()
+	assert(save_manager.load_run(restored), "Saved run should load")
+	assert(restored.run_floor == state.run_floor, "Floor should survive save/load")
+	assert(restored.deck.size() == state.deck.size(), "Deck should survive save/load")
+	assert(restored.enemy_name == state.enemy_name, "Current encounter should survive save/load")
+	assert(restored.phase == state.phase, "Run phase should survive save/load")
+	assert(save_manager.delete_save(), "Test save should be removable")
