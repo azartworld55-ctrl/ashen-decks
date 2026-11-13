@@ -14,6 +14,7 @@ var player_block := 0
 var energy := STARTING_ENERGY
 var turn := 1
 var run_floor := 1
+var gold := 0
 
 var enemy_name := "Пепельный страж"
 var enemy_hp := 42
@@ -29,6 +30,7 @@ var draw_pile: Array[Dictionary] = []
 var discard_pile: Array[Dictionary] = []
 var hand: Array[Dictionary] = []
 var reward_options: Array[Dictionary] = []
+var route_options: Array[Dictionary] = []
 var phase := "player"
 var last_message := "Выбери карту, чтобы сыграть её."
 
@@ -39,12 +41,14 @@ func start_combat() -> void:
 	energy = STARTING_ENERGY
 	turn = 1
 	run_floor = 1
+	gold = 0
 	phase = "player"
 	deck.clear()
 	draw_pile.clear()
 	discard_pile.clear()
 	hand.clear()
 	reward_options.clear()
+	route_options.clear()
 
 	var starter_deck := [
 		_make_card("Удар", 1, "Наносит 6 урона.", "attack", 6, 0, 0),
@@ -82,6 +86,7 @@ func _start_encounter() -> void:
 	draw_pile.clear()
 	discard_pile.clear()
 	reward_options.clear()
+	route_options.clear()
 
 	match run_floor:
 		1:
@@ -259,7 +264,56 @@ func claim_reward(index: int) -> bool:
 	if index >= 0:
 		deck.append(reward_options[index].duplicate(true))
 	run_floor += 1
+	_build_route_options()
+	phase = "route"
+	last_message = "Выбери путь к следующему этажу."
+	changed.emit()
+	return true
+
+func _build_route_options() -> void:
+	route_options = [
+		{"name": "Костёр", "description": "Восстановить до 10 здоровья."},
+		{"name": "Забытый тайник", "description": "Найти 20 золотых монет."},
+		{"name": "Алтарь пепла", "description": "Усилить одну карту в колоде."}
+	]
+
+func choose_route(index: int) -> bool:
+	if phase != "route" or index < 0 or index >= route_options.size():
+		return false
+
+	var route_message := ""
+	match index:
+		0:
+			var restored_hp: int = mini(10, player_max_hp - player_hp)
+			player_hp += restored_hp
+			route_message = "У костра восстановлено %d здоровья." % restored_hp
+		1:
+			gold += 20
+			route_message = "В тайнике найдено 20 золотых."
+		2:
+			var candidates: Array[int] = []
+			for i in range(deck.size()):
+				var card: Dictionary = deck[i]
+				if int(card.get("damage", 0)) > 0 or int(card.get("block", 0)) > 0 or int(card.get("heal", 0)) > 0:
+					candidates.append(i)
+			if not candidates.is_empty():
+				var chosen_index: int = candidates[randi_range(0, candidates.size() - 1)]
+				var upgraded: Dictionary = deck[chosen_index]
+				if int(upgraded.get("damage", 0)) > 0:
+					upgraded["damage"] = int(upgraded["damage"]) + 2
+				elif int(upgraded.get("block", 0)) > 0:
+					upgraded["block"] = int(upgraded["block"]) + 2
+				else:
+					upgraded["heal"] = int(upgraded["heal"]) + 1
+				upgraded["description"] = str(upgraded.get("description", "")) + " Усилена у алтаря."
+				deck[chosen_index] = upgraded
+				route_message = "Алтарь усилил карту «%s»." % upgraded.get("name", "Безымянная карта")
+			else:
+				gold += 10
+				route_message = "Алтарь пуст. Найдено 10 золотых."
 	_start_encounter()
+	last_message = route_message + "\n" + last_message
+	changed.emit()
 	return true
 
 func to_save_data() -> Dictionary:
@@ -271,6 +325,7 @@ func to_save_data() -> Dictionary:
 		"energy": energy,
 		"turn": turn,
 		"run_floor": run_floor,
+		"gold": gold,
 		"enemy_name": enemy_name,
 		"enemy_hp": enemy_hp,
 		"enemy_max_hp": enemy_max_hp,
@@ -284,6 +339,7 @@ func to_save_data() -> Dictionary:
 		"discard_pile": discard_pile.duplicate(true),
 		"hand": hand.duplicate(true),
 		"reward_options": reward_options.duplicate(true),
+		"route_options": route_options.duplicate(true),
 		"phase": phase,
 		"last_message": last_message
 	}
@@ -308,7 +364,7 @@ func load_save_data(data: Dictionary) -> bool:
 		return false
 	if loaded_enemy_max_hp < 1 or loaded_enemy_hp < 0 or loaded_enemy_hp > loaded_enemy_max_hp:
 		return false
-	if loaded_phase not in ["player", "victory"]:
+	if loaded_phase not in ["player", "victory", "route"]:
 		return false
 
 	var loaded_deck := _copy_card_array(saved_deck)
@@ -320,11 +376,13 @@ func load_save_data(data: Dictionary) -> bool:
 	discard_pile = _copy_card_array(data.get("discard_pile", []))
 	hand = _copy_card_array(data.get("hand", []))
 	reward_options = _copy_card_array(data.get("reward_options", []))
-	if hand.size() > HAND_SIZE or reward_options.size() > 3:
+	route_options = _copy_card_array(data.get("route_options", []))
+	if hand.size() > HAND_SIZE or reward_options.size() > 3 or route_options.size() > 3:
 		return false
 
 	player_hp = loaded_hp
 	player_max_hp = loaded_max_hp
+	gold = maxi(0, int(data.get("gold", 0)))
 	player_block = maxi(0, int(data.get("player_block", 0)))
 	energy = clampi(int(data.get("energy", STARTING_ENERGY)), 0, 10)
 	turn = maxi(1, int(data.get("turn", 1)))
