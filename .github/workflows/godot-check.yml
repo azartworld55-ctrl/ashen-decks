@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: godot-check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate-and-export:
     runs-on: ubuntu-latest
