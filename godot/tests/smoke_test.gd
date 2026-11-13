@@ -73,6 +73,11 @@ func _initialize() -> void:
     assert(state.player_block == 3 or state.player_hp == 53, "Starting relic should apply its combat bonus")
     assert(state.enemy_name == "Утопленник-писец", "Second floor should load its enemy")
     assert(state.enemy_hp == 56, "Second enemy should have configured health")
+    assert(SaveManagerScript.save_run(state), "Run with relic should save")
+    var relic_restored = RunStateScript.new()
+    assert(SaveManagerScript.load_run(relic_restored), "Run with relic should load")
+    assert(relic_restored.relics.size() == 1, "Relic collection should survive save/load")
+    assert(SaveManagerScript.delete_save(), "Relic save should be removable")
 
     state.enemy_hp = 1
     state.hand.clear()
