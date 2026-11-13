@@ -177,7 +177,10 @@ func _continue_run() -> void:
         _show_title()
         return
     state.changed.connect(_refresh_battle)
-    _show_battle()
+    if state.phase == "route":
+        _show_route()
+    else:
+        _show_battle()
 
 func _show_battle() -> void:
     result_shown = false
@@ -233,7 +236,7 @@ func _refresh_battle() -> void:
 
     status_label.text = "Здоровье %d/%d   •   Блок %d   •   Энергия %d   •   Ход %d\nКолода: %d   •   Сброс: %d" % [
         state.player_hp, state.player_max_hp, state.player_block, state.energy, state.turn,
-        state.draw_pile.size(), state.discard_pile.size()
+        state.gold, state.draw_pile.size(), state.discard_pile.size()
     ]
     enemy_portrait.texture = _get_enemy_art()
     enemy_label.text = "%s\nЗдоровье: %d / %d   •   Блок: %d" % [
@@ -304,6 +307,29 @@ func _show_reward() -> void:
 
 func _claim_reward(index: int) -> void:
     if state == null or not state.claim_reward(index):
+        return
+    SaveManagerScript.save_run(state)
+    if state.phase == "route":
+        _show_route()
+    else:
+        _show_battle()
+
+func _show_route() -> void:
+    var root := _new_content()
+    root.add_spacer(false)
+    root.add_child(_make_label("ВЫБОР ПУТИ", 34, GOLD))
+    root.add_child(_make_label("До следующего этажа можно сделать только одну остановку.", 17, MUTED))
+    root.add_spacer(false)
+    for i in range(state.route_options.size()):
+        var route: Dictionary = state.route_options[i]
+        var route_button := _make_button("%s\\n%s" % [route.get("name", "Путь"), route.get("description", "")], 112)
+        route_button.add_theme_font_size_override("font_size", 18)
+        route_button.pressed.connect(_choose_route.bind(i))
+        root.add_child(route_button)
+    root.add_spacer(false)
+
+func _choose_route(index: int) -> void:
+    if state == null or not state.choose_route(index):
         return
     SaveManagerScript.save_run(state)
     _show_battle()
