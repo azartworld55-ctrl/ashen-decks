@@ -234,13 +234,30 @@ func _take_player_damage(amount: int) -> void:
 	player_hp = maxi(0, player_hp - remaining)
 
 func _set_enemy_intent() -> void:
-	match turn % 3:
-		0:
-			enemy_intent = "heavy_attack"
-		2:
-			enemy_intent = "prepare"
-		_:
-			enemy_intent = "attack"
+	if run_floor == 1:
+		match turn % 3:
+			0:
+				enemy_intent = "heavy_attack"
+			2:
+				enemy_intent = "prepare"
+			_:
+				enemy_intent = "attack"
+	elif run_floor == 2:
+		match turn % 4:
+			2:
+				enemy_intent = "heavy_attack"
+			3:
+				enemy_intent = "prepare"
+			_:
+				enemy_intent = "attack"
+	else:
+		match turn % 4:
+			2:
+				enemy_intent = "prepare"
+			3:
+				enemy_intent = "heavy_attack"
+			_:
+				enemy_intent = "attack"
 
 func get_intent_text() -> String:
 	match enemy_intent:
