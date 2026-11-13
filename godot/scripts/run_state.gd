@@ -509,7 +509,7 @@ func to_save_data() -> Dictionary:
 	}
 
 func load_save_data(data: Dictionary) -> bool:
-	if int(data.get("save_version", 0)) != 3:
+	if int(data.get("save_version", 0)) not in [2, 3]:
 		return false
 
 	var saved_deck: Variant = data.get("deck", [])
