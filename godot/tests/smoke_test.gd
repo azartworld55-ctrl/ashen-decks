@@ -69,6 +69,8 @@ func _initialize() -> void:
     assert(event_restored.event_options.size() == 3, "Event choices should survive save/load")
     assert(state.choose_event(0), "First event choice should resolve")
     assert(state.phase == "player", "Event choice should start the next floor")
+    assert(state.relics.size() == 1, "Relic choice should add one relic to the run")
+    assert(state.player_block == 3 or state.player_hp == 53, "Starting relic should apply its combat bonus")
     assert(state.enemy_name == "Утопленник-писец", "Second floor should load its enemy")
     assert(state.enemy_hp == 56, "Second enemy should have configured health")
 
