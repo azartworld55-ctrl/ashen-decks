@@ -122,5 +122,23 @@ func _initialize() -> void:
         power_after += int(card.get("damage", 0)) + int(card.get("block", 0)) + int(card.get("heal", 0))
     assert(power_after > power_before, "Ash altar should improve one card")
 
-    print("Godot route, run progression and save tests passed.")
+    var energy_probe = RunStateScript.new()
+    energy_probe.start_combat()
+    energy_probe.hand.clear()
+    energy_probe.hand.append({
+        "name": "Пепельный импульс",
+        "cost": 0,
+        "description": "Тест дополнительной энергии.",
+        "type": "skill",
+        "damage": 0,
+        "block": 0,
+        "heal": 0,
+        "energy_gain": 1
+    })
+    energy_probe.energy = 2
+    assert(energy_probe.play_card(0), "Energy card should resolve")
+    assert(energy_probe.energy == 3, "Energy card should grant one energy")
+    assert(energy_probe.discard_pile.size() == 1, "Energy card should enter discard pile")
+
+    print("Godot route, run progression, energy card and save tests passed.")
     quit()
