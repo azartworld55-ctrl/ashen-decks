@@ -144,5 +144,25 @@ func _initialize() -> void:
     assert(energy_probe.play_card(0), "Energy card should still resolve at the cap")
     assert(energy_probe.energy == 5, "Energy card should not exceed the five-energy cap")
 
-    print("Godot route, run progression, energy cap and save tests passed.")
+    var intent_probe = RunStateScript.new()
+    intent_probe.start_combat()
+    intent_probe.turn = 2
+    intent_probe._set_enemy_intent()
+    assert(intent_probe.enemy_intent == "prepare", "First-floor intent cycle should prepare on turn two")
+    intent_probe.turn = 3
+    intent_probe._set_enemy_intent()
+    assert(intent_probe.enemy_intent == "heavy_attack", "First-floor intent cycle should use a heavy attack on turn three")
+    intent_probe.run_floor = 2
+    intent_probe.turn = 2
+    intent_probe._set_enemy_intent()
+    assert(intent_probe.enemy_intent == "heavy_attack", "Second-floor enemy should use its own intent pattern")
+    intent_probe.run_floor = 3
+    intent_probe.turn = 2
+    intent_probe._set_enemy_intent()
+    assert(intent_probe.enemy_intent == "prepare", "Boss should prepare on turn two")
+    intent_probe.turn = 3
+    intent_probe._set_enemy_intent()
+    assert(intent_probe.enemy_intent == "heavy_attack", "Boss should use a heavy attack on turn three")
+
+    print("Godot route, card effects, enemy intent patterns and save tests passed.")
     quit()
