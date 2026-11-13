@@ -1,5 +1,7 @@
 extends SceneTree
 
+# Typed RunState arrays are populated with append() to preserve their element type.
+
 const RunStateScript = preload("res://scripts/run_state.gd")
 const SaveManagerScript = preload("res://scripts/save_manager.gd")
 
