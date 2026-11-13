@@ -23,6 +23,7 @@ var draw_pile: Array[Dictionary] = []
 var discard_pile: Array[Dictionary] = []
 var hand: Array[Dictionary] = []
 var phase := "player"
+var last_message := "Выбери карту, чтобы сыграть её."
 
 func start_combat() -> void:
 	player_hp = STARTING_HP
@@ -33,6 +34,7 @@ func start_combat() -> void:
 	enemy_hp = enemy_max_hp
 	enemy_block = 0
 	phase = "player"
+	last_message = "Пепельный страж преграждает путь."
 	draw_pile.clear()
 	discard_pile.clear()
 	hand.clear()
@@ -91,6 +93,7 @@ func play_card(index: int) -> bool:
 	energy -= cost
 	hand.remove_at(index)
 
+	var effects: Array[String] = []
 	var damage: int = int(card.get("damage", 0))
 	if damage > 0:
 		var blocked: int = mini(enemy_block, damage)
@@ -98,15 +101,31 @@ func play_card(index: int) -> bool:
 		var remaining: int = damage - blocked
 		var dealt: int = mini(remaining, enemy_hp)
 		enemy_hp -= dealt
-	if int(card.get("block", 0)) > 0:
-		player_block += int(card["block"])
-	if int(card.get("heal", 0)) > 0:
-		player_hp = mini(player_max_hp, player_hp + int(card["heal"]))
+		if blocked > 0:
+			effects.append("блок врага поглотил %d" % blocked)
+		if dealt > 0:
+			effects.append("нанесено %d урона" % dealt)
+
+	var block_gain: int = int(card.get("block", 0))
+	if block_gain > 0:
+		player_block += block_gain
+		effects.append("+%d блока" % block_gain)
+
+	var heal_amount: int = int(card.get("heal", 0))
+	if heal_amount > 0:
+		var actual_heal: int = mini(heal_amount, player_max_hp - player_hp)
+		player_hp += actual_heal
+		if actual_heal > 0:
+			effects.append("восстановлено %d здоровья" % actual_heal)
+		else:
+			effects.append("здоровье уже полное")
 
 	discard_pile.append(card)
+	last_message = "%s: %s." % [card.get("name", "Карта"), ", ".join(effects)]
 	if enemy_hp <= 0:
 		enemy_hp = 0
 		phase = "victory"
+		last_message = "Пепельный страж повержен."
 	changed.emit()
 	return true
 
@@ -121,14 +140,20 @@ func end_turn() -> void:
 	phase = "enemy"
 	if enemy_intent == "attack":
 		_take_player_damage(7)
+		enemy_block = 0
+		last_message = "Страж атакует: 7 урона до блока."
 	elif enemy_intent == "heavy_attack":
 		_take_player_damage(10)
+		enemy_block = 0
+		last_message = "Страж наносит тяжёлый удар: 10 урона до блока."
 	elif enemy_intent == "prepare":
 		enemy_block += 4
+		last_message = "Страж укрепляет защиту: +4 блока."
 
 	if player_hp <= 0:
 		player_hp = 0
 		phase = "defeat"
+		last_message = "Ты пал в руинах."
 		changed.emit()
 		return
 
