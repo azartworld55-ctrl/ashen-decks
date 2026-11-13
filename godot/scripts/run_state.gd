@@ -31,6 +31,10 @@ var discard_pile: Array[Dictionary] = []
 var hand: Array[Dictionary] = []
 var reward_options: Array[Dictionary] = []
 var route_options: Array[Dictionary] = []
+var event_options: Array[Dictionary] = []
+var event_title := ""
+var event_description := ""
+var relics: Array[String] = []
 var phase := "player"
 var last_message := "Выбери карту, чтобы сыграть её."
 
@@ -49,6 +53,8 @@ func start_combat() -> void:
 	hand.clear()
 	reward_options.clear()
 	route_options.clear()
+	event_options.clear()
+	relics.clear()
 
 	var starter_deck := [
 		_make_card("Удар", 1, "Наносит 6 урона.", "attack", 6, 0, 0),
@@ -81,6 +87,10 @@ func _start_encounter() -> void:
 	turn = 1
 	energy = STARTING_ENERGY
 	player_block = 0
+	if relics.has("Сердце углей"):
+		player_hp = mini(player_max_hp, player_hp + 3)
+	if relics.has("Знак стража"):
+		player_block += 3
 	enemy_block = 0
 	hand.clear()
 	draw_pile.clear()
@@ -384,14 +394,90 @@ func choose_route(index: int) -> bool:
 			else:
 				gold += 10
 				route_message = "Алтарь пуст. Найдено 10 золотых."
+	_build_event()
+	phase = "event"
+	last_message = route_message + "\nПеред следующим этажом тебя ждёт случайная встреча."
+	changed.emit()
+	return true
+
+func _build_event() -> void:
+	var events := [
+		{
+			"title": "Паломник у разбитой часовни",
+			"description": "Незнакомец предлагает помощь, но просит оставить что-нибудь взамен.",
+			"options": [
+				{"name": "Принять благословение", "description": "Получить реликвию «Сердце углей» — лечение в начале каждого боя.", "kind": "relic", "relic": "Сердце углей"},
+				{"name": "Оставить подношение", "description": "Потратить 10 золота и восстановить 12 здоровья.", "kind": "trade_heal", "cost": 10, "amount": 12},
+				{"name": "Пройти мимо", "description": "Ничего не менять.", "kind": "nothing"}
+			]
+		},
+		{
+			"title": "Кузня под чёрным снегом",
+			"description": "Старый механизм ещё хранит жар. Его можно направить на оружие или защиту.",
+			"options": [
+				{"name": "Закалить знак", "description": "Получить «Знак стража»: +3 блока в начале каждого боя.", "kind": "relic", "relic": "Знак стража"},
+				{"name": "Продать находку", "description": "Получить 25 золотых.", "kind": "gold", "amount": 25},
+				{"name": "Согреть руки", "description": "Восстановить 8 здоровья.", "kind": "heal", "amount": 8}
+			]
+		},
+		{
+			"title": "Безмолвный торговец",
+			"description": "Торговец не называет цену вслух. Он просто выкладывает три вещи.",
+			"options": [
+				{"name": "Взять угольную печать", "description": "Получить «Сердце углей»: лечение в начале каждого боя.", "kind": "relic", "relic": "Сердце углей"},
+				{"name": "Обменять монеты", "description": "Потратить 15 золота и получить 20 здоровья.", "kind": "trade_heal", "cost": 15, "amount": 20},
+				{"name": "Забрать плату", "description": "Получить 15 золотых.", "kind": "gold", "amount": 15}
+			]
+		}
+	]
+	var chosen: Dictionary = events[randi_range(0, events.size() - 1)]
+	event_title = str(chosen["title"])
+	event_description = str(chosen["description"])
+	event_options.clear()
+	for option in chosen["options"]:
+		event_options.append(option.duplicate(true))
+
+func choose_event(index: int) -> bool:
+	if phase != "event" or index < 0 or index >= event_options.size():
+		return false
+	var option: Dictionary = event_options[index]
+	var kind := str(option.get("kind", "nothing"))
+	match kind:
+		"relic":
+			var relic_name := str(option.get("relic", ""))
+			if relic_name != "" and not relics.has(relic_name):
+				relics.append(relic_name)
+				last_message = "Получена реликвия: %s." % relic_name
+			else:
+				gold += 10
+				last_message = "Реликвия уже с тобой. Вместо неё найдено 10 золотых."
+		"trade_heal":
+			var cost := int(option.get("cost", 0))
+			if gold < cost:
+				return false
+			gold -= cost
+			var restored := mini(int(option.get("amount", 0)), player_max_hp - player_hp)
+			player_hp += restored
+			last_message = "Обмен завершён: восстановлено %d здоровья." % restored
+		"heal":
+			var healed := mini(int(option.get("amount", 0)), player_max_hp - player_hp)
+			player_hp += healed
+			last_message = "Восстановлено %d здоровья." % healed
+		"gold":
+			var gained := int(option.get("amount", 0))
+			gold += gained
+			last_message = "Получено %d золотых." % gained
+		_:
+			last_message = "Ты оставил встречу позади."
+	event_options.clear()
 	_start_encounter()
-	last_message = route_message + "\n" + last_message
+	last_message = last_message + "\n" + last_message
 	changed.emit()
 	return true
 
 func to_save_data() -> Dictionary:
 	return {
-		"save_version": 2,
+		"save_version": 3,
 		"player_hp": player_hp,
 		"player_max_hp": player_max_hp,
 		"player_block": player_block,
@@ -413,12 +499,16 @@ func to_save_data() -> Dictionary:
 		"hand": hand.duplicate(true),
 		"reward_options": reward_options.duplicate(true),
 		"route_options": route_options.duplicate(true),
+		"event_options": event_options.duplicate(true),
+		"event_title": event_title,
+		"event_description": event_description,
+		"relics": relics.duplicate(),
 		"phase": phase,
 		"last_message": last_message
 	}
 
 func load_save_data(data: Dictionary) -> bool:
-	if int(data.get("save_version", 0)) != 2:
+	if int(data.get("save_version", 0)) != 3:
 		return false
 
 	var saved_deck: Variant = data.get("deck", [])
@@ -437,7 +527,8 @@ func load_save_data(data: Dictionary) -> bool:
 		return false
 	if loaded_enemy_max_hp < 1 or loaded_enemy_hp < 0 or loaded_enemy_hp > loaded_enemy_max_hp:
 		return false
-	if loaded_phase not in ["player", "victory", "route"]:
+	if loaded_phase not in ["player", "victory", "route", "event"]:
+		return false
 		return false
 
 	var loaded_deck := _copy_card_array(saved_deck)
@@ -450,11 +541,22 @@ func load_save_data(data: Dictionary) -> bool:
 	hand = _copy_card_array(data.get("hand", []))
 	reward_options = _copy_card_array(data.get("reward_options", []))
 	route_options = _copy_card_array(data.get("route_options", []))
-	if hand.size() > HAND_SIZE or reward_options.size() > 3 or route_options.size() > 3:
+	event_options = _copy_card_array(data.get("event_options", []))
+	event_title = str(data.get("event_title", ""))
+	event_description = str(data.get("event_description", ""))
+	relics.clear()
+	var saved_relics: Variant = data.get("relics", [])
+	if saved_relics is Array:
+		for relic in saved_relics:
+			if str(relic) in ["Сердце углей", "Знак стража"] and not relics.has(str(relic)):
+				relics.append(str(relic))
+	if hand.size() > HAND_SIZE or reward_options.size() > 3 or route_options.size() > 3 or event_options.size() > 3:
 		return false
 	if loaded_phase == "route" and route_options.size() != 3:
 		return false
 	if loaded_phase == "victory" and reward_options.size() != 3:
+		return false
+	if loaded_phase == "event" and (event_options.size() != 3 or event_title.is_empty()):
 		return false
 
 	player_hp = loaded_hp
