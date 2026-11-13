@@ -60,6 +60,15 @@ func _initialize() -> void:
 
     assert(state.choose_route(0), "Campfire route should resolve")
     assert(state.player_hp == 50, "Campfire should restore ten health")
+    assert(state.phase == "event", "Route choice should lead to a random event")
+    assert(state.event_options.size() == 3, "Random event should offer three choices")
+    assert(SaveManagerScript.save_run(state), "Event state should save")
+    var event_restored = RunStateScript.new()
+    assert(SaveManagerScript.load_run(event_restored), "Saved event should load")
+    assert(event_restored.phase == "event", "Event phase should survive save/load")
+    assert(event_restored.event_options.size() == 3, "Event choices should survive save/load")
+    assert(state.choose_event(0), "First event choice should resolve")
+    assert(state.phase == "player", "Event choice should start the next floor")
     assert(state.enemy_name == "Утопленник-писец", "Second floor should load its enemy")
     assert(state.enemy_hp == 56, "Second enemy should have configured health")
 
@@ -80,6 +89,8 @@ func _initialize() -> void:
     assert(state.choose_route(1), "Treasure route should resolve")
     assert(state.gold == 20, "Treasure route should award twenty gold")
     assert(state.run_floor == 3, "Run should advance to the final floor")
+    assert(state.phase == "event", "Second route should also lead to an event")
+    assert(state.choose_event(2), "Second event choice should resolve")
     assert(state.enemy_name == "Епископ углей", "Final boss should load")
     assert(state.enemy_hp == 78, "Final boss should have configured health")
 
@@ -227,5 +238,5 @@ func _initialize() -> void:
     intent_probe._set_enemy_intent()
     assert(intent_probe.enemy_intent == "heavy_attack", "Boss should use a heavy attack on turn three")
 
-    print("Godot route, card effects, draw limits, enemy intent patterns and save tests passed.")
+    print("Godot combat, rewards, routes, random events, relics, card effects, enemy intents and save tests passed.")
     quit()
