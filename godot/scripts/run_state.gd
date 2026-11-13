@@ -318,7 +318,7 @@ func choose_route(index: int) -> bool:
 
 func to_save_data() -> Dictionary:
 	return {
-		"save_version": 1,
+		"save_version": 2,
 		"player_hp": player_hp,
 		"player_max_hp": player_max_hp,
 		"player_block": player_block,
@@ -345,7 +345,7 @@ func to_save_data() -> Dictionary:
 	}
 
 func load_save_data(data: Dictionary) -> bool:
-	if int(data.get("save_version", 0)) != 1:
+	if int(data.get("save_version", 0)) != 2:
 		return false
 
 	var saved_deck: Variant = data.get("deck", [])
@@ -378,6 +378,10 @@ func load_save_data(data: Dictionary) -> bool:
 	reward_options = _copy_card_array(data.get("reward_options", []))
 	route_options = _copy_card_array(data.get("route_options", []))
 	if hand.size() > HAND_SIZE or reward_options.size() > 3 or route_options.size() > 3:
+		return false
+	if loaded_phase == "route" and route_options.size() != 3:
+		return false
+	if loaded_phase == "victory" and reward_options.size() != 3:
 		return false
 
 	player_hp = loaded_hp
