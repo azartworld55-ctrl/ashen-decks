@@ -93,7 +93,10 @@ func play_card(index: int) -> bool:
 
 	var damage: int = int(card.get("damage", 0))
 	if damage > 0:
-		var dealt: int = mini(damage, enemy_hp)
+		var blocked: int = mini(enemy_block, damage)
+		enemy_block -= blocked
+		var remaining: int = damage - blocked
+		var dealt: int = mini(remaining, enemy_hp)
 		enemy_hp -= dealt
 	if int(card.get("block", 0)) > 0:
 		player_block += int(card["block"])
