@@ -207,6 +207,8 @@ func _continue_run() -> void:
     state.changed.connect(_refresh_battle)
     if state.phase == "route":
         _show_route()
+    elif state.phase == "event":
+        _show_event()
     else:
         _show_battle()
 
@@ -271,6 +273,8 @@ func _refresh_battle() -> void:
         state.player_hp, state.player_max_hp, state.player_block, state.energy, state.turn,
         state.gold, state.draw_pile.size(), state.discard_pile.size()
     ]
+    if not state.relics.is_empty():
+        status_label.text += "\nРеликвии: " + " • ".join(state.relics)
     enemy_portrait.texture = _get_enemy_art()
     enemy_label.text = "%s\nЗдоровье: %d / %d   •   Блок: %d" % [
         state.enemy_name, state.enemy_hp, state.enemy_max_hp, state.enemy_block
@@ -396,6 +400,33 @@ func _show_route() -> void:
 
 func _choose_route(index: int) -> void:
     if state == null or not state.choose_route(index):
+        return
+    SaveManagerScript.save_run(state)
+    _show_event()
+
+func _show_event() -> void:
+    background_art.visible = false
+    var root := _new_content()
+    root.add_spacer(false)
+    root.add_child(_make_label("СЛУЧАЙНАЯ ВСТРЕЧА", 16, MUTED))
+    root.add_child(_make_label(state.event_title, 32, GOLD))
+    root.add_child(_make_label(state.event_description, 18, TEXT))
+    root.add_spacer(false)
+    for i in range(state.event_options.size()):
+        var option: Dictionary = state.event_options[i]
+        var option_button := _make_button("%s\n%s" % [
+            option.get("name", "Выбор"),
+            option.get("description", "")
+        ], 112)
+        option_button.add_theme_font_size_override("font_size", 17)
+        if option.get("kind", "") == "trade_heal" and state.gold < int(option.get("cost", 0)):
+            option_button.disabled = true
+        option_button.pressed.connect(_choose_event.bind(i))
+        root.add_child(option_button)
+    root.add_spacer(false)
+
+func _choose_event(index: int) -> void:
+    if state == null or not state.choose_event(index):
         return
     SaveManagerScript.save_run(state)
     _show_battle()
