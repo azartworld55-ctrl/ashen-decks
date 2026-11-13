@@ -1,20 +1,66 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111016">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#100d12">
 <meta name="description" content="ASHEN DECKS — мрачное карточное roguelike-приключение на десять этажей.">
-<title>ASHEN DECKS — Пепельная бездна</title><link rel="stylesheet" href="styles.css">
+<title>ASHEN DECKS — Пепельная бездна</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 </head>
-<body><main class="shell">
-<header class="topbar"><div><p class="eyebrow">A ROGUELIKE CARD ADVENTURE</p><h1>ASHEN <span>DECKS</span></h1></div><div class="resources"><span>✦ Осколки: <b id="shards">0</b></span><span>Победы: <b id="wins">0</b></span><span>Сохранение: <b>локально</b></span></div></header>
-<section class="intro panel"><div><p class="eyebrow">ПЕПЕЛ ПОМНИТ ВСЁ</p><h2 id="screen-title">Спустись в Пепельную Бездну</h2><p id="screen-copy">Десять этажей, развилки, опасные встречи и Король пепла внизу. Собери колоду и пройди путь до конца.</p></div><button id="start-run" class="primary">Начать забег</button></section>
-<section class="status-strip"><span id="floor-label">10 этажей</span><span id="turn-label">Путь</span><span id="hand-count">0 карт</span></section>
-<section class="map-panel panel"><div class="section-heading"><span>ПУТЬ В БЕЗДНУ</span><span>Выбирай узел каждого этажа</span></div><div id="map" class="map"><p class="muted">Карта из десяти этажей появится после начала забега.</p></div></section>
-<section class="battle-grid">
-<div class="panel enemy-panel"><div class="section-heading"><span>ПРОТИВНИК</span><span>✧</span></div><div class="enemy-art" id="enemy-art">☠</div><h2 id="enemy-name">Впереди неизвестность</h2><div class="health"><div id="enemy-health-bar"></div></div><p class="statline"><span>Здоровье</span><b id="enemy-health">—</b></p><p class="intent" id="enemy-intent">Выбери узел на карте</p><p class="muted" id="combat-log" aria-live="polite">Начни забег и выбери маршрут.</p></div>
-<div class="panel player-panel"><div class="section-heading"><span>ТВОЙ ГЕРОЙ</span><span>ПЕПЕЛЬНЫЙ ПУТНИК</span></div><div class="player-stats"><div><small>ЗДОРОВЬЕ</small><strong id="player-health">70 / 70</strong></div><div><small>ЭНЕРГИЯ</small><strong id="energy">—</strong></div><div><small>БЛОК</small><strong id="block">0</strong></div></div><div class="health"><div id="player-health-bar"></div></div><div class="hand-heading"><span>РУКА</span><span>Выбирай карты для хода</span></div><div id="hand" class="hand"><div class="empty">Начни забег, чтобы открыть карту пути.</div></div><div class="actions"><button id="end-turn" class="secondary" disabled>Завершить ход</button><button id="abandon-run" class="quiet" disabled>Покинуть забег</button></div></div>
-</section>
-<section id="decision" class="panel decision" aria-live="polite"></section>
-<section class="panel collection-panel"><div class="section-heading"><span>КОЛЛЕКЦИЯ</span><span id="collection-count">10 карт в колоде</span></div><p class="muted">50 карт пяти редкостей. После победы выбирай награду и постепенно меняй свою колоду.</p><div id="collection" class="collection"></div></section>
-<footer>ASHEN DECKS <span>Версия 1.0.0 · Сохранение в этом браузере</span></footer>
-</main><script src="game.js"></script></body></html>
+<body>
+<div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+<main class="shell">
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="ASHEN DECKS"><span class="brand-mark">A</span><span><b>ASHEN DECKS</b><small>ПЕПЕЛЬНАЯ БЕЗДНА</small></span></a>
+    <div class="run-meta"><span><i class="meta-dot"></i> ОСКОЛКИ <b id="shards">0</b></span><span>ПОБЕДЫ <b id="wins">0</b></span><span class="save-state"><i></i> СОХРАНЕНО ЛОКАЛЬНО</span></div>
+  </header>
+
+  <section class="intro">
+    <div class="intro-copy"><p class="eyebrow"><span></span> ХРОНИКИ ПЕПЛА · ЗАПИСЬ 001</p><h1 id="screen-title">Спустись в<br><em>Пепельную Бездну</em></h1><p id="screen-copy">Десять этажей вниз. Ни одного безопасного пути назад. Собери колоду, переживи встречи и доберись до трона Короля пепла.</p></div>
+    <div class="intro-action"><div class="sigil">✦</div><button id="start-run" class="primary"><span>Начать забег</span><b>↗</b></button><small>10 ЭТАЖЕЙ <i>·</i> 50 КАРТ <i>·</i> 1 БЕЗДНА</small></div>
+    <div class="intro-grain"></div>
+  </section>
+
+  <div class="status-strip"><span id="floor-label"><i>Ⅰ</i> 10 ЭТАЖЕЙ</span><span id="turn-label">ПОДГОТОВКА К СПУСКУ</span><span id="hand-count">0 КАРТ В РУКЕ</span></div>
+
+  <div class="game-layout">
+    <aside class="left-rail">
+      <section class="panel map-panel"><div class="panel-heading"><div><small>ТВОЙ МАРШРУТ</small><h2>Путь в бездну</h2></div><span class="heading-mark">⌁</span></div><div id="map" class="map"><p class="muted">Маршрут откроется после начала забега.</p></div><div class="map-legend"><span><i class="legend-battle"></i> Бой</span><span><i class="legend-rest"></i> Отдых</span><span><i class="legend-elite"></i> Элитный</span></div></section>
+      <section class="panel deck-panel"><div class="panel-heading"><div><small>ТВОЙ АРСЕНАЛ</small><h2>Колода</h2></div><span class="deck-count" id="collection-count">10</span></div><p>Собирай сочетания карт и меняй тактику по ходу забега.</p><details class="collection-details"><summary>Открыть коллекцию <span>＋</span></summary><div id="collection" class="collection"></div></details></section>
+      <div class="rail-note"><span>✧</span><p>ПЕПЕЛ ПОМНИТ<br>КАЖДЫЙ ТВОЙ ШАГ</p></div>
+    </aside>
+
+    <section class="main-stage">
+      <section class="battle-grid">
+        <div class="panel enemy-panel">
+          <div class="panel-heading"><div><small>ПРОТИВНИК</small><h2 id="enemy-name">Тишина перед бурей</h2></div><span class="enemy-rank">✦</span></div>
+          <div class="enemy-stage"><div class="enemy-halo"></div><div class="enemy-art" id="enemy-art">☠</div><div class="enemy-caption">СУЩЕСТВО ИЗ БЕЗДНЫ</div></div>
+          <div class="enemy-health-row"><span>ЗДОРОВЬЕ</span><b id="enemy-health">—</b></div><div class="health enemy-health"><div id="enemy-health-bar"></div></div>
+          <div class="intent" id="enemy-intent"><span>◈</span> Выбери узел на карте</div>
+          <p class="combat-log" id="combat-log" aria-live="polite">Твой путь начинается здесь.</p>
+        </div>
+
+        <div class="panel player-panel">
+          <div class="panel-heading"><div><small>ПЕПЕЛЬНЫЙ ПУТНИК</small><h2>Состояние героя</h2></div><span class="hero-mark">✧</span></div>
+          <div class="player-stats">
+            <div class="stat health-stat"><small>ЗДОРОВЬЕ</small><strong id="player-health">70 / 70</strong><div class="health"><div id="player-health-bar"></div></div></div>
+            <div class="stat"><small>ЭНЕРГИЯ</small><strong id="energy">—</strong><span class="stat-icon">✦ ✦ ✦</span></div>
+            <div class="stat"><small>БЛОК</small><strong id="block">0</strong><span class="stat-icon">⬡ ЗАЩИТА</span></div>
+          </div>
+          <div class="hand-header"><div><small>ТВОЙ ХОД</small><h3>Карты в руке</h3></div><span>ВЫБЕРИ ДЕЙСТВИЕ</span></div>
+          <div id="hand" class="hand"><div class="empty">Начни забег, чтобы получить стартовую руку.</div></div>
+          <div class="battle-footer"><span class="hint">Нажми на карту, чтобы разыграть её</span><div class="actions"><button id="abandon-run" class="quiet" disabled>Сдаться</button><button id="end-turn" class="secondary" disabled>Завершить ход <b>↗</b></button></div></div>
+        </div>
+      </section>
+      <section id="decision" class="panel decision" aria-live="polite"></section>
+      <footer><span>ASHEN DECKS <i>—</i> ВЕРСИЯ 1.0.0</span><span>ТВОЙ ПРОГРЕСС ХРАНИТСЯ В ЭТОМ БРАУЗЕРЕ</span></footer>
+    </section>
+  </div>
+</main>
+<script src="game.js"></script>
+</body>
+</html>
