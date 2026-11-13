@@ -1,18 +1,29 @@
 # ASHEN DECKS
 
-A dark-fantasy roguelike deck-builder.
+A dark-fantasy browser roguelike deck-builder.
 
-## Run locally
-Open `index.html` in a modern browser. No build step or external dependencies are required.
+## Play locally
 
-## First prototype
-- 50 original cards, with up to 4 collectible copies of each.
-- Turn-based combat, energy, block, enemy intents and a starter deck.
-- Persistent collection and run state in browser local storage.
-- Automated rules tests via `npm test`.
+Open \`index.html\` in a modern browser. No build step or package installation is required. Internet access is only used for optional Google Fonts; the game itself runs locally.
 
-## Progression and saves
-The browser prototype stores progress in local storage on the same browser and device. Clearing browser data or changing devices can remove access to that local save. A future account/cloud-save service should be added before treating saves as cross-device backups.
+## Version 1.0.0 gameplay
 
-## Development safety
-Daily changes should be proposed on a separate branch, tested, and reviewed before merging to the stable branch. Never overwrite player saves during a content update; use explicit save-version migrations.
+- A complete ten-floor run with a final boss.
+- Route choices with regular battles, elite encounters, rest stops and treasure rooms.
+- Turn-based card combat with energy, block, healing, weakening, enemy intents and shuffled draw/discard piles.
+- Three-card post-battle reward choice; skip a reward when it does not fit your deck.
+- A 50-card collection with five rarity tiers and a deck that changes during a run.
+- Persistent collection, unlocked cards, currency, wins and run state in browser local storage.
+- Save migration from the earlier version 1 prototype.
+
+## Saves
+
+Progress is stored in local storage in the current browser on the current device. It is not a cloud save and does not automatically sync between devices. Clearing browser storage can remove the save. Do not promise cross-device backup until a server-backed account/save system exists.
+
+## Tests
+
+Run \`npm test\` with Node.js 18 or newer.
+
+## Development
+
+Work on feature branches, run the tests, and review changes before merging to \`main\`. Keep save migrations explicit and never silently reset player progress.
