@@ -11,15 +11,23 @@ func _initialize() -> void:
 	assert(state.hand.size() == 5, "Opening hand should contain five cards")
 	assert(state.enemy_hp == 42, "Test enemy should start with 42 HP")
 
-	var playable_index := -1
-	for i in range(state.hand.size()):
-		if int(state.hand[i]["cost"]) <= state.energy:
-			playable_index = i
-			break
+	state.hand.clear()
+	state.hand.append({
+		"name": "Проверочный удар",
+		"cost": 1,
+		"description": "Проверка блока.",
+		"type": "attack",
+		"damage": 6,
+		"block": 0,
+		"heal": 0
+	})
+	state.enemy_block = 4
+	state.energy = 3
 
-	assert(playable_index >= 0, "Opening hand should contain a playable card")
-	assert(state.play_card(playable_index), "A playable card should resolve")
-	assert(state.hand.size() == 4, "Played card should leave the hand")
+	assert(state.play_card(0), "Test attack should resolve")
+	assert(state.enemy_hp == 40, "Enemy block should absorb four of six damage")
+	assert(state.enemy_block == 0, "Enemy block should be consumed")
+	assert(state.hand.is_empty(), "Played card should leave the hand")
 
 	state.end_turn()
 	assert(state.turn == 2, "Turn counter should advance")
