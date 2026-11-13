@@ -1,0 +1,50 @@
+name: Godot checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: godot-check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Godot project
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/godot:/project" \
+            -w /project \
+            barichello/godot-ci:4.4.1 \
+            godot --headless --path /project --editor --quit
+
+      - name: Run combat, route and save tests
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/godot:/project" \
+            -w /project \
+            barichello/godot-ci:4.4.1 \
+            godot --headless --path /project --script res://tests/smoke_test.gd
+
+      - name: Export web build
+        run: |
+          mkdir -p "${{ github.workspace }}/web-build"
+          docker run --rm \
+            -v "${{ github.workspace }}/godot:/project" \
+            -v "${{ github.workspace }}/web-build:/build" \
+            -w /project \
+            barichello/godot-ci:4.4.1 \
+            godot --headless --path /project --export-release "Web" /build/index.html
+
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ashen-decks-web
+          path: web-build/
+          if-no-files-found: error

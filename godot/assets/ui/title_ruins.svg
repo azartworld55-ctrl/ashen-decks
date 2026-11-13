@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1400" viewBox="0 0 900 1400">
+<defs>
+ <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#25202a"/><stop offset=".55" stop-color="#17151e"/><stop offset="1" stop-color="#0e0d13"/></linearGradient>
+ <radialGradient id="moon"><stop stop-color="#e1c59b" stop-opacity=".9"/><stop offset=".55" stop-color="#b68b6b" stop-opacity=".35"/><stop offset="1" stop-color="#b68b6b" stop-opacity="0"/></radialGradient>
+ <linearGradient id="ruin" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#63515a"/><stop offset="1" stop-color="#211b25"/></linearGradient>
+ <filter id="haze"><feGaussianBlur stdDeviation="34"/></filter>
+</defs>
+<rect width="900" height="1400" fill="url(#sky)"/>
+<circle cx="455" cy="380" r="310" fill="url(#moon)"/>
+<circle cx="455" cy="380" r="120" fill="#d6c1a2" opacity=".28"/>
+<path d="M0 820 Q170 730 310 790 T610 785 T900 810 L900 1400 L0 1400Z" fill="#25202a"/>
+<path d="M0 1000 Q220 900 430 980 T900 970 L900 1400 L0 1400Z" fill="#17141b"/>
+<path d="M60 1060 L60 590 L160 490 L260 590 L260 1020Z" fill="url(#ruin)" stroke="#76616a" stroke-width="14"/>
+<path d="M35 600 L160 455 L285 600" fill="none" stroke="#8a7378" stroke-width="22"/>
+<path d="M640 1030 L640 560 L740 450 L840 560 L840 1080Z" fill="url(#ruin)" stroke="#76616a" stroke-width="14"/>
+<path d="M610 570 L740 410 L870 570" fill="none" stroke="#8a7378" stroke-width="22"/>
+<path d="M270 1030 L270 720 Q450 420 630 720 L630 1030" fill="#211b25" stroke="#8c7377" stroke-width="24"/>
+<path d="M330 1030 L330 750 Q450 565 570 750 L570 1030" fill="#15131a" stroke="#594851" stroke-width="12"/>
+<path d="M385 1030 L385 820 Q450 730 515 820 L515 1030" fill="#0c0c12"/>
+<path d="M0 1140 Q200 1080 360 1140 T900 1125 L900 1400 L0 1400Z" fill="#100f15"/>
+<g fill="#c18a68" opacity=".65"><circle cx="120" cy="860" r="7"/><circle cx="210" cy="940" r="4"/><circle cx="710" cy="820" r="6"/><circle cx="800" cy="980" r="4"/><circle cx="430" cy="1090" r="5"/><circle cx="560" cy="1180" r="4"/></g>
+<g fill="none" stroke="#8b5c53" stroke-width="8" opacity=".35" filter="url(#haze)"><path d="M80 1300 Q250 1120 420 1300 T820 1280"/><path d="M0 920 Q180 780 320 950 T620 930"/></g>
+<path d="M80 1340 Q450 1280 820 1340" fill="none" stroke="#5e454a" stroke-width="4" opacity=".5"/>
+</svg>
