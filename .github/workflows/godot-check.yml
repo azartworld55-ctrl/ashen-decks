@@ -1,0 +1,32 @@
+name: Godot checks
+
+on:
+  push:
+    branches:
+      - godot-rebuild
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Godot project
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/godot:/project" \
+            -w /project \
+            barichello/godot-ci:4.4.1 \
+            godot --headless --path /project --editor --quit
+
+      - name: Run combat smoke test
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/godot:/project" \
+            -w /project \
+            barichello/godot-ci:4.4.1 \
+            godot --headless --path /project --script res://tests/smoke_test.gd
