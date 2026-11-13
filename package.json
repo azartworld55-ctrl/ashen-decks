@@ -1,0 +1,9 @@
+{
+  "name": "ashen-decks",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A dark-fantasy roguelike deck-builder",
+  "scripts": {
+    "test": "node --test"
+  }
+}
