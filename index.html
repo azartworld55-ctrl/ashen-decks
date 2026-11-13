@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111016">
+  <title>ASHEN DECKS</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div><p class="eyebrow">A ROGUELIKE CARD ADVENTURE</p><h1>ASHEN <span>DECKS</span></h1></div>
+      <div class="resources"><span>✦ Осколки: <b id="shards">0</b></span><span>Победы: <b id="wins">0</b></span></div>
+    </header>
+    <section class="intro panel">
+      <div><p class="eyebrow">ПЕПЕЛ ПОМНИТ ВСЁ</p><h2 id="screen-title">Спустись в Пепельную Бездна</h2><p id="screen-copy">Собери колоду, переживи встречу и забери осколки для следующего похода.</p></div>
+      <button id="start-run" class="primary">Начать поход</button>
+    </section>
+    <section class="battle-grid">
+      <div class="panel enemy-panel">
+        <div class="section-heading"><span>ПРОТИВНИК</span><span id="floor-label">Этаж 1</span></div>
+        <div class="enemy-art" id="enemy-art">☠</div>
+        <h2 id="enemy-name">Пепельный страж</h2>
+        <div class="health"><div id="enemy-health-bar"></div></div>
+        <p class="statline"><span>Здоровье</span><b id="enemy-health">42 / 42</b></p>
+        <p class="intent" id="enemy-intent">Готовится атаковать: 7</p>
+        <p class="muted" id="combat-log" aria-live="polite">Твой ход начинается. Выбери карту.</p>
+      </div>
+      <div class="panel player-panel">
+        <div class="section-heading"><span>ТВОЙ ГЕРОЙ</span><span id="turn-label">Твой ход</span></div>
+        <div class="player-stats">
+          <div><small>ЗДОРОВЬЕ</small><strong id="player-health">60 / 60</strong></div>
+          <div><small>ЭНЕРГИЯ</small><strong id="energy">3 / 3</strong></div>
+          <div><small>БЛОК</small><strong id="block">0</strong></div>
+        </div>
+        <div class="health"><div id="player-health-bar"></div></div>
+        <div class="hand-heading"><span>РУКА</span><span id="hand-count">5 карт</span></div>
+        <div id="hand" class="hand"></div>
+        <div class="actions"><button id="end-turn" class="secondary" disabled>Завершить ход</button><button id="abandon-run" class="quiet" disabled>Сдаться</button></div>
+      </div>
+    </section>
+    <section class="panel collection-panel">
+      <div class="section-heading"><span>КОЛЛЕКЦИЯ</span><span id="collection-count">0 / 200 карт</span></div>
+      <p class="muted">50 оригинальных карт. До четырёх копий каждой. Новые карты открываются после побед.</p>
+      <div id="collection" class="collection"></div>
+    </section>
+    <footer>ASHEN DECKS <span>Прототип 0.1.0 · Сохранение в этом браузере</span></footer>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
