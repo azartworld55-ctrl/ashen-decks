@@ -267,7 +267,7 @@ func _refresh_battle() -> void:
     else:
         SaveManagerScript.save_run(state)
 
-    status_label.text = "Здоровье %d/%d   •   Блок %d   •   Энергия %d   •   Ход %d\nКолода: %d   •   Сброс: %d" % [
+    status_label.text = "Здоровье %d/%d   •   Блок %d   •   Энергия %d   •   Ход %d\nЗолото: %d   •   Добор: %d   •   Сброс: %d" % [
         state.player_hp, state.player_max_hp, state.player_block, state.energy, state.turn,
         state.gold, state.draw_pile.size(), state.discard_pile.size()
     ]
