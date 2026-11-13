@@ -260,7 +260,7 @@ func _show_reward() -> void:
 	for i in range(state.reward_options.size()):
 		var card: Dictionary = state.reward_options[i]
 		var reward_button := _make_card_button(card, i, true)
-		reward_button.custom_minimum_size.y = 120
+		reward_button.custom_minimum_size = Vector2(0, 120)
 		root.add_child(reward_button)
 
 	var skip := _make_button("ПРОПУСТИТЬ НАГРАДУ", 58)
