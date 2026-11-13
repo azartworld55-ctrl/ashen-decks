@@ -470,8 +470,9 @@ func choose_event(index: int) -> bool:
 		_:
 			last_message = "Ты оставил встречу позади."
 	event_options.clear()
+	var event_message := last_message
 	_start_encounter()
-	last_message = last_message + "\n" + last_message
+	last_message = event_message + "\n" + last_message
 	changed.emit()
 	return true
 
