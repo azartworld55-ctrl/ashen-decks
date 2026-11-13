@@ -169,6 +169,15 @@ func play_card(index: int) -> bool:
 		else:
 			effects.append("здоровье уже полное")
 
+	var energy_gain: int = int(card.get("energy_gain", 0))
+	if energy_gain > 0:
+		var actual_energy: int = mini(energy_gain, 5 - energy)
+		energy += actual_energy
+		if actual_energy > 0:
+			effects.append("+%d энергии" % actual_energy)
+		else:
+			effects.append("запас энергии уже максимален")
+
 	discard_pile.append(card)
 	last_message = "%s: %s." % [card.get("name", "Карта"), ", ".join(effects)]
 	if enemy_hp <= 0:
@@ -249,7 +258,17 @@ func _build_reward_options() -> void:
 		_make_card("Пепельный ритуал", 1, "Восстанавливает 6 здоровья.", "skill", 0, 0, 6),
 		_make_card("Кровавый долг", 2, "Наносит 15 урона.", "attack", 15, 0, 0),
 		_make_card("Последняя искра", 0, "Наносит 5 урона.", "attack", 5, 0, 0),
-		_make_card("Железная воля", 1, "Даёт 6 блока и лечит на 2.", "skill", 0, 6, 2)
+		_make_card("Железная воля", 1, "Даёт 6 блока и лечит на 2.", "skill", 0, 6, 2),
+		{
+			"name": "Пепельный импульс",
+			"cost": 0,
+			"description": "Даёт 1 дополнительную энергию в этом ходу.",
+			"type": "skill",
+			"damage": 0,
+			"block": 0,
+			"heal": 0,
+			"energy_gain": 1
+		}
 	]
 	pool.shuffle()
 	reward_options.clear()
