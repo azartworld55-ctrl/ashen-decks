@@ -139,6 +139,10 @@ func _initialize() -> void:
     assert(energy_probe.play_card(0), "Energy card should resolve")
     assert(energy_probe.energy == 3, "Energy card should grant one energy")
     assert(energy_probe.discard_pile.size() == 1, "Energy card should enter discard pile")
+    energy_probe.energy = 5
+    energy_probe.hand.append(energy_probe.discard_pile[0].duplicate(true))
+    assert(energy_probe.play_card(0), "Energy card should still resolve at the cap")
+    assert(energy_probe.energy == 5, "Energy card should not exceed the five-energy cap")
 
-    print("Godot route, run progression, energy card and save tests passed.")
+    print("Godot route, run progression, energy cap and save tests passed.")
     quit()
