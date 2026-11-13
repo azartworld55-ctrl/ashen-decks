@@ -3,11 +3,13 @@ extends SceneTree
 const RunStateScript = preload("res://scripts/run_state.gd")
 const SaveManagerScript = preload("res://scripts/save_manager.gd")
 
+var failures := 0
+
 func _initialize() -> void:
     var state = RunStateScript.new()
     state.start_combat()
 
-    assert(state.player_hp == 60, "Player should start with 60 HP")
+    _check(state.player_hp == 60, "Player should start with 60 HP")
     assert(state.energy == 3, "Player should start with 3 energy")
     assert(state.hand.size() == 5, "Opening hand should contain five cards")
     assert(state.enemy_hp == 42, "First enemy should start with 42 HP")
@@ -245,5 +247,14 @@ func _initialize() -> void:
     intent_probe._set_enemy_intent()
     assert(intent_probe.enemy_intent == "heavy_attack", "Boss should use a heavy attack on turn three")
 
-    print("Godot combat, rewards, routes, random events, relics, card effects, enemy intents and save tests passed.")
-    quit()
+    if failures > 0:
+        push_error("Godot smoke tests failed: %d" % failures)
+        quit(1)
+    else:
+        print("Godot combat, rewards, routes, random events, relics, card effects, enemy intents and save tests passed.")
+        quit(0)
+
+func _check(condition: bool, message: String) -> void:
+    if not condition:
+        failures += 1
+        push_error("FAIL: " + message)
