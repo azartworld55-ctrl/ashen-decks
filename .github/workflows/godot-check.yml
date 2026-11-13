@@ -1,9 +1,6 @@
 name: Godot checks
 
 on:
-  push:
-    branches:
-      - godot-rebuild
   pull_request:
     branches:
       - main
@@ -23,7 +20,7 @@ jobs:
             barichello/godot-ci:4.4.1 \
             godot --headless --path /project --editor --quit
 
-      - name: Run combat and run-progression tests
+      - name: Run combat, route and save tests
         run: |
           docker run --rm \
             -v "${{ github.workspace }}/godot:/project" \
