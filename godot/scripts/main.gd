@@ -1,6 +1,9 @@
 extends Control
 
 const RunStateScript = preload("res://scripts/run_state.gd")
+const GUARDIAN_ART = preload("res://assets/enemies/ashen_guardian.svg")
+const SCRIBE_ART = preload("res://assets/enemies/drowned_scribe.svg")
+const BISHOP_ART = preload("res://assets/enemies/cinder_bishop.svg")
 const MAX_FLOOR := 3
 
 var state: RunState
@@ -9,6 +12,7 @@ var content_root: MarginContainer
 var hand_grid: GridContainer
 var status_label: Label
 var enemy_label: Label
+var enemy_portrait: TextureRect
 var intent_label: Label
 var log_label: Label
 var end_turn_button: Button
@@ -272,3 +276,12 @@ func _claim_reward(index: int) -> void:
 	if state == null or not state.claim_reward(index):
 		return
 	_show_battle()
+
+func _get_enemy_art() -> Texture2D:
+	match state.run_floor:
+		1:
+			return GUARDIAN_ART
+		2:
+			return SCRIBE_ART
+		_:
+			return BISHOP_ART
