@@ -1,0 +1,8 @@
+const test=require("node:test");const assert=require("node:assert/strict");const g=require("../game.js");
+test("50 unique cards, maximum four copies",()=>{assert.equal(g.CARDS.length,50);assert.equal(new Set(g.CARDS.map(c=>c.id)).size,50);assert.ok(g.CARDS.every(c=>c.maxCopies===4));});
+test("starter collection is valid and contains 4 strikes, 4 guards, 2 sparks",()=>{const s=g.initialSave();assert.equal(g.validSave(s),true);assert.equal(s.collection["ash-strike"],4);assert.equal(s.collection["guarded-step"],4);assert.equal(s.collection.spark,2);});
+test("attack spends energy and damages enemy",()=>{const r=g.createRun(g.initialSave());const i=r.hand.indexOf("ash-strike");assert.notEqual(i,-1);const hp=r.enemyHp;assert.equal(g.playCard(r,i),true);assert.equal(r.enemyHp,hp-6);assert.equal(r.energy,2);});
+test("insufficient energy cannot play a card",()=>{const r=g.createRun(g.initialSave());r.energy=0;const hp=r.enemyHp;assert.equal(g.playCard(r,r.hand.indexOf("ash-strike")),false);assert.equal(r.enemyHp,hp);});
+test("block reduces enemy damage and resets",()=>{const r=g.createRun(g.initialSave());r.block=5;const hp=r.hp;g.endTurn(r);assert.equal(r.hp,hp-(r.enemy.attack-5));assert.equal(r.block,0);});
+test("victory rewards shards and one card without exceeding cap",()=>{const s=g.initialSave(),r=g.createRun(s);r.status="won";const n=g.finishRun(s,r);assert.equal(n.wins,1);assert.ok(n.shards>0);assert.equal(Object.values(n.collection).reduce((a,b)=>a+b,0),11);assert.ok(Object.values(n.collection).every(x=>x<=4));});
+test("corrupt or over-cap save is rejected",()=>{const s=g.initialSave();s.collection.spark=5;assert.equal(g.validSave(s),false);assert.equal(g.validSave(null),false);});
