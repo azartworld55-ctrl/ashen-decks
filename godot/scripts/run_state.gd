@@ -178,6 +178,13 @@ func play_card(index: int) -> bool:
 		else:
 			effects.append("запас энергии уже максимален")
 
+	var draw_amount: int = int(card.get("draw", 0))
+	if draw_amount > 0:
+		var hand_before_draw := hand.size()
+		_draw_cards(draw_amount)
+		var cards_drawn := hand.size() - hand_before_draw
+		effects.append("добрано карт: %d" % cards_drawn)
+
 	discard_pile.append(card)
 	last_message = "%s: %s." % [card.get("name", "Карта"), ", ".join(effects)]
 	if enemy_hp <= 0:
@@ -284,6 +291,36 @@ func _build_reward_options() -> void:
 			"damage": 0,
 			"block": 0,
 			"heal": 0,
+			"energy_gain": 1
+		},
+		{
+			"name": "Шёпот колодца",
+			"cost": 1,
+			"description": "Добирает 2 карты.",
+			"type": "skill",
+			"damage": 0,
+			"block": 0,
+			"heal": 0,
+			"draw": 2
+		},
+		{
+			"name": "Пепельная стена",
+			"cost": 2,
+			"description": "Даёт 12 блока.",
+			"type": "skill",
+			"damage": 0,
+			"block": 12,
+			"heal": 0
+		},
+		{
+			"name": "Тихий обмен",
+			"cost": 1,
+			"description": "Добирает 1 карту и возвращает 1 энергию.",
+			"type": "skill",
+			"damage": 0,
+			"block": 0,
+			"heal": 0,
+			"draw": 1,
 			"energy_gain": 1
 		}
 	]
