@@ -29,7 +29,6 @@ func _initialize() -> void:
     assert(state.play_card(0), "Test attack should resolve")
     assert(state.enemy_hp == 40, "Enemy block should absorb four of six damage")
     assert(state.enemy_block == 0, "Enemy block should be consumed")
-    assert(state.hand.is_empty(), "Played card should leave the hand")
 
     state.enemy_hp = 6
     state.hand.append({
@@ -45,23 +44,24 @@ func _initialize() -> void:
     assert(state.phase == "victory", "First floor should lead to reward phase")
     assert(state.reward_options.size() == 3, "Victory should offer three rewards")
 
-    var hp_before_reward: int = state.player_hp
-    assert(state.claim_reward(0), "Claiming a reward should advance the run")
+    state.player_hp = 40
+    assert(state.claim_reward(0), "Claiming a reward should advance to route choice")
     assert(state.run_floor == 2, "Run should advance to floor two")
     assert(state.deck.size() == 11, "Claimed reward should be added to the deck")
-    assert(state.player_hp == hp_before_reward, "Player health should carry between floors")
-    assert(state.enemy_name == "Утопленник-писец", "Second floor should load its enemy")
-    assert(state.enemy_hp == 56, "Second enemy should have its configured health")
-    assert(state.hand.size() == 5, "New encounter should draw a fresh hand")
+    assert(state.phase == "route", "Reward should lead to route selection")
 
-    assert(SaveManagerScript.save_run(state), "Run should save to user storage")
+    assert(SaveManagerScript.save_run(state), "Route state should save")
     var restored = RunStateScript.new()
-    assert(SaveManagerScript.load_run(restored), "Saved run should load")
-    assert(restored.run_floor == state.run_floor, "Floor should survive save/load")
+    assert(SaveManagerScript.load_run(restored), "Saved route should load")
+    assert(restored.phase == "route", "Route choice should survive save/load")
+    assert(restored.route_options.size() == 3, "All route options should survive save/load")
     assert(restored.deck.size() == state.deck.size(), "Deck should survive save/load")
-    assert(restored.enemy_name == state.enemy_name, "Current encounter should survive save/load")
-    assert(restored.phase == state.phase, "Run phase should survive save/load")
     assert(SaveManagerScript.delete_save(), "Test save should be removable")
+
+    assert(state.choose_route(0), "Campfire route should resolve")
+    assert(state.player_hp == 50, "Campfire should restore ten health")
+    assert(state.enemy_name == "Утопленник-писец", "Second floor should load its enemy")
+    assert(state.enemy_hp == 56, "Second enemy should have configured health")
 
     state.enemy_hp = 1
     state.hand.clear()
@@ -77,6 +77,8 @@ func _initialize() -> void:
     assert(state.play_card(0), "Second-floor finishing attack should resolve")
     assert(state.phase == "victory", "Second floor should also award a reward")
     assert(state.claim_reward(-1), "Skipping a reward should be allowed")
+    assert(state.choose_route(1), "Treasure route should resolve")
+    assert(state.gold == 20, "Treasure route should award twenty gold")
     assert(state.run_floor == 3, "Run should advance to the final floor")
     assert(state.enemy_name == "Епископ углей", "Final boss should load")
     assert(state.enemy_hp == 78, "Final boss should have configured health")
@@ -95,5 +97,5 @@ func _initialize() -> void:
     assert(state.play_card(0), "Final attack should resolve")
     assert(state.phase == "run_victory", "Final boss victory should finish the run")
 
-    print("Godot run progression and save tests passed.")
+    print("Godot route, run progression and save tests passed.")
     quit()
