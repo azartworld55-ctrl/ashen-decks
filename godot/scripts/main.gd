@@ -12,6 +12,7 @@ var content: VBoxContainer
 var content_root: MarginContainer
 var hand_grid: GridContainer
 var status_label: Label
+var deck_button: Button
 var enemy_label: Label
 var enemy_portrait: TextureRect
 var intent_label: Label
@@ -45,6 +46,7 @@ func _clear_content() -> void:
     content = null
     hand_grid = null
     status_label = null
+    deck_button = null
     enemy_label = null
     enemy_portrait = null
     intent_label = null
@@ -190,6 +192,10 @@ func _show_battle() -> void:
 
     status_label = _make_label("", 17)
     root.add_child(status_label)
+    deck_button = _make_button("ПОСМОТРЕТЬ КОЛОДУ • %d КАРТ" % state.deck.size(), 48)
+    deck_button.add_theme_font_size_override("font_size", 16)
+    deck_button.pressed.connect(_show_deck)
+    root.add_child(deck_button)
 
     var enemy_panel := _make_panel()
     root.add_child(enemy_panel)
@@ -286,6 +292,36 @@ func _show_result(heading: String, description: String, button_text: String, cal
     var action := _make_button(button_text, 64)
     action.pressed.connect(callback)
     content.add_child(action)
+
+
+func _show_deck() -> void:
+    var root := _new_content()
+    root.add_child(_make_label("ТВОЯ КОЛОДА", 30, GOLD))
+    root.add_child(_make_label("Карт: %d   •   Золото: %d" % [state.deck.size(), state.gold], 16, MUTED))
+
+    var scroll := ScrollContainer.new()
+    scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    root.add_child(scroll)
+
+    var list := VBoxContainer.new()
+    list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    list.add_theme_constant_override("separation", 10)
+    scroll.add_child(list)
+
+    for card in state.deck:
+        var panel := _make_panel()
+        list.add_child(panel)
+        var stack := VBoxContainer.new()
+        stack.add_theme_constant_override("separation", 5)
+        panel.add_child(stack)
+        var card_title := "%s   •   %d энергии" % [card.get("name", "Карта"), int(card.get("cost", 0))]
+        stack.add_child(_make_label(card_title, 18, GOLD))
+        stack.add_child(_make_label(str(card.get("description", "")), 15, MUTED))
+
+    var back := _make_button("ВЕРНУТЬСЯ К БОЮ", 64)
+    back.pressed.connect(_show_battle)
+    root.add_child(back)
 
 func _show_reward() -> void:
     var root := _new_content()
