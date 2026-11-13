@@ -185,6 +185,28 @@ func _initialize() -> void:
     assert(draw_probe.play_card(4), "Draw card should resolve near hand limit")
     assert(draw_probe.hand.size() == 5, "Draw effect must respect the hand-size limit")
 
+    var hybrid_probe = RunStateScript.new()
+    hybrid_probe.start_combat()
+    hybrid_probe.hand.clear()
+    hybrid_probe.draw_pile = [
+        {"name": "Добранная карта", "cost": 0, "damage": 0, "block": 0, "heal": 0}
+    ]
+    hybrid_probe.hand.append({
+        "name": "Тихий обмен",
+        "cost": 1,
+        "description": "Добирает карту и возвращает энергию.",
+        "type": "skill",
+        "damage": 0,
+        "block": 0,
+        "heal": 0,
+        "draw": 1,
+        "energy_gain": 1
+    })
+    hybrid_probe.energy = 2
+    assert(hybrid_probe.play_card(0), "Combined draw and energy card should resolve")
+    assert(hybrid_probe.hand.size() == 1, "Combined card should draw one card")
+    assert(hybrid_probe.energy == 2, "Combined card should refund its one energy cost")
+
     var intent_probe = RunStateScript.new()
     intent_probe.start_combat()
     intent_probe.turn = 2
