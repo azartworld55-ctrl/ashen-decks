@@ -27,3 +27,8 @@ Run \`npm test\` with Node.js 18 or newer.
 ## Development
 
 Work on feature branches, run the tests, and review changes before merging to \`main\`. Keep save migrations explicit and never silently reset player progress.
+
+
+## Hosting
+
+The production site is deployed from the `main` branch using the GitHub Actions workflow in `.github/workflows/deploy-pages.yml`.
