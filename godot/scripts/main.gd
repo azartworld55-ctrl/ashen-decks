@@ -1,6 +1,7 @@
 extends Control
 
 const RunStateScript = preload("res://scripts/run_state.gd")
+const MAX_FLOOR := 3
 
 var state: RunState
 var content: VBoxContainer
@@ -107,7 +108,7 @@ func _make_button(value: String, minimum_height: int = 64) -> Button:
 	button.add_theme_stylebox_override("hover", hover)
 	return button
 
-func _make_card_button(card: Dictionary, index: int) -> Button:
+func _make_card_button(card: Dictionary, index: int, is_reward: bool = false) -> Button:
 	var title := str(card.get("name", "Карта"))
 	var cost := int(card.get("cost", 0))
 	var description := str(card.get("description", ""))
@@ -123,8 +124,11 @@ func _make_card_button(card: Dictionary, index: int) -> Button:
 	style.content_margin_left = 8
 	style.content_margin_right = 8
 	card_button.add_theme_stylebox_override("normal", style)
-	card_button.disabled = state.phase != "player" or cost > state.energy
-	card_button.pressed.connect(_on_card_pressed.bind(index))
+	if is_reward:
+		card_button.pressed.connect(_claim_reward.bind(index))
+	else:
+		card_button.disabled = state.phase != "player" or cost > state.energy
+		card_button.pressed.connect(_on_card_pressed.bind(index))
 	return card_button
 
 func _show_title() -> void:
@@ -158,6 +162,7 @@ func _show_battle() -> void:
 	result_shown = false
 	var root := _new_content()
 	root.add_child(_make_label("ASHEN DECKS", 24, GOLD))
+	root.add_child(_make_label("ЭТАЖ %d / %d" % [state.run_floor, MAX_FLOOR], 16, MUTED))
 
 	status_label = _make_label("", 17)
 	root.add_child(status_label)
@@ -212,9 +217,11 @@ func _refresh_battle() -> void:
 	end_turn_button.disabled = state.phase != "player"
 
 	if state.phase == "victory" and not result_shown:
-		_show_result("ПОБЕДА", "Ты пережил первую встречу.")
+		_show_result("ПОБЕДА", "Враг повержен. Выбери одну карту для колоды.", "ВЫБРАТЬ НАГРАДУ", _show_reward)
+	elif state.phase == "run_victory" and not result_shown:
+		_show_result("ЗАБЕГ ЗАВЕРШЁН", "Епископ углей пал. Руины на время умолкли.", "В ГЛАВНОЕ МЕНЮ", _show_title)
 	elif state.phase == "defeat" and not result_shown:
-		_show_result("ПОРАЖЕНИЕ", "Руины забрали ещё одну жизнь.")
+		_show_result("ПОРАЖЕНИЕ", "Руины забрали ещё одну жизнь.", "НОВЫЙ ЗАБЕГ", _start_combat)
 
 func _on_card_pressed(index: int) -> void:
 	if state == null:
@@ -226,7 +233,7 @@ func _on_end_turn() -> void:
 		return
 	state.end_turn()
 
-func _show_result(heading: String, description: String) -> void:
+func _show_result(heading: String, description: String, button_text: String, callback: Callable) -> void:
 	if result_shown or content == null:
 		return
 	result_shown = true
@@ -239,6 +246,29 @@ func _show_result(heading: String, description: String) -> void:
 	result_panel.add_child(stack)
 	stack.add_child(_make_label(heading, 26, GOLD))
 	stack.add_child(_make_label(description, 17, MUTED))
-	var again := _make_button("НОВЫЙ БОЙ", 64)
-	again.pressed.connect(_start_combat)
-	content.add_child(again)
+	var action := _make_button(button_text, 64)
+	action.pressed.connect(callback)
+	content.add_child(action)
+
+func _show_reward() -> void:
+	var root := _new_content()
+	root.add_spacer(false)
+	root.add_child(_make_label("НАГРАДА", 34, GOLD))
+	root.add_child(_make_label("Выбери одну карту. Она останется в колоде до конца забега.", 17, MUTED))
+	root.add_spacer(false)
+
+	for i in range(state.reward_options.size()):
+		var card: Dictionary = state.reward_options[i]
+		var reward_button := _make_card_button(card, i, true)
+		reward_button.custom_minimum_size.y = 120
+		root.add_child(reward_button)
+
+	var skip := _make_button("ПРОПУСТИТЬ НАГРАДУ", 58)
+	skip.pressed.connect(_claim_reward.bind(-1))
+	root.add_child(skip)
+	root.add_spacer(false)
+
+func _claim_reward(index: int) -> void:
+	if state == null or not state.claim_reward(index):
+		return
+	_show_battle()
