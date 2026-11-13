@@ -21,6 +21,7 @@ var intent_label: Label
 var log_label: Label
 var end_turn_button: Button
 var result_shown := false
+var compact_layout := false
 
 const BG := Color("#17141b")
 const PANEL := Color("#26212b")
@@ -73,17 +74,25 @@ func _new_content() -> VBoxContainer:
     _clear_content()
     content_root = MarginContainer.new()
     content_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    content_root.add_theme_constant_override("margin_left", 22)
-    content_root.add_theme_constant_override("margin_top", 24)
-    content_root.add_theme_constant_override("margin_right", 22)
-    content_root.add_theme_constant_override("margin_bottom", 24)
+    compact_layout = get_viewport_rect().size.x < 520.0
+    var side_margin := 14 if compact_layout else 26
+    var vertical_margin := 14 if compact_layout else 24
+    content_root.add_theme_constant_override("margin_left", side_margin)
+    content_root.add_theme_constant_override("margin_top", vertical_margin)
+    content_root.add_theme_constant_override("margin_right", side_margin)
+    content_root.add_theme_constant_override("margin_bottom", vertical_margin)
     add_child(content_root)
 
+    var page_scroll := ScrollContainer.new()
+    page_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    page_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    page_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    content_root.add_child(page_scroll)
+
     content = VBoxContainer.new()
-    content.add_theme_constant_override("separation", 14)
+    content.add_theme_constant_override("separation", 10 if compact_layout else 14)
     content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    content.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    content_root.add_child(content)
+    page_scroll.add_child(content)
     return content
 
 func _make_label(value: String, font_size: int, color: Color = TEXT) -> Label:
@@ -138,8 +147,8 @@ func _make_card_button(card: Dictionary, index: int, is_reward: bool = false) ->
     var description := str(card.get("description", ""))
     var card_button := _make_button("%s\n✦ %d энергии\n\n%s" % [
         title, cost, description
-    ], 156)
-    card_button.add_theme_font_size_override("font_size", 17)
+    ], 124 if compact_layout else 156)
+    card_button.add_theme_font_size_override("font_size", 16 if compact_layout else 17)
     var style := StyleBoxFlat.new()
     style.bg_color = PANEL_LIGHT
     style.border_color = RED if card.get("type", "attack") == "attack" else BLUE
@@ -222,7 +231,7 @@ func _show_battle() -> void:
     enemy_panel.add_child(enemy_stack)
 
     enemy_portrait = TextureRect.new()
-    enemy_portrait.custom_minimum_size = Vector2(0, 210)
+    enemy_portrait.custom_minimum_size = Vector2(0, 142 if compact_layout else 210)
     enemy_portrait.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     enemy_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     enemy_stack.add_child(enemy_portrait)
@@ -234,10 +243,10 @@ func _show_battle() -> void:
 
     root.add_child(_make_label("ТВОЯ РУКА", 18, MUTED))
     hand_grid = GridContainer.new()
-    hand_grid.columns = 2
+    hand_grid.columns = 1 if compact_layout else 2
     hand_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    hand_grid.add_theme_constant_override("h_separation", 10)
-    hand_grid.add_theme_constant_override("v_separation", 10)
+    hand_grid.add_theme_constant_override("h_separation", 8)
+    hand_grid.add_theme_constant_override("v_separation", 8)
     root.add_child(hand_grid)
 
     log_label = _make_label("", 15, MUTED)
@@ -379,7 +388,7 @@ func _show_route() -> void:
     root.add_spacer(false)
     for i in range(state.route_options.size()):
         var route: Dictionary = state.route_options[i]
-        var route_button := _make_button("%s\\n%s" % [route.get("name", "Путь"), route.get("description", "")], 112)
+        var route_button := _make_button("%s\n%s" % [route.get("name", "Путь"), route.get("description", "")], 112)
         route_button.add_theme_font_size_override("font_size", 18)
         route_button.pressed.connect(_choose_route.bind(i))
         root.add_child(route_button)
