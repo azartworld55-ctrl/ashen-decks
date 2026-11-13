@@ -5,11 +5,13 @@ const SaveManagerScript = preload("res://scripts/save_manager.gd")
 const GUARDIAN_ART = preload("res://assets/enemies/ashen_guardian.svg")
 const SCRIBE_ART = preload("res://assets/enemies/drowned_scribe.svg")
 const BISHOP_ART = preload("res://assets/enemies/cinder_bishop.svg")
+const TITLE_ART = preload("res://assets/ui/title_ruins.svg")
 const MAX_FLOOR := 3
 
 var state: RunState
 var content: VBoxContainer
 var content_root: MarginContainer
+var background_art: TextureRect
 var hand_grid: GridContainer
 var status_label: Label
 var deck_button: Button
@@ -38,6 +40,20 @@ func _build_background() -> void:
     background.color = BG
     background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     add_child(background)
+
+    background_art = TextureRect.new()
+    background_art.texture = TITLE_ART
+    background_art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    background_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+    background_art.modulate = Color(0.72, 0.67, 0.64, 0.58)
+    background_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(background_art)
+
+    var shade := ColorRect.new()
+    shade.color = Color(0.04, 0.035, 0.05, 0.42)
+    shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(shade)
 
 func _clear_content() -> void:
     if content_root != null and is_instance_valid(content_root):
@@ -140,6 +156,7 @@ func _make_card_button(card: Dictionary, index: int, is_reward: bool = false) ->
     return card_button
 
 func _show_title() -> void:
+    background_art.visible = true
     var root := _new_content()
     root.add_spacer(false)
     root.add_child(_make_label("ASHEN DECKS", 42, GOLD))
@@ -185,6 +202,7 @@ func _continue_run() -> void:
         _show_battle()
 
 func _show_battle() -> void:
+    background_art.visible = false
     result_shown = false
     var root := _new_content()
     root.add_child(_make_label("ASHEN DECKS", 24, GOLD))
@@ -295,6 +313,7 @@ func _show_result(heading: String, description: String, button_text: String, cal
 
 
 func _show_deck() -> void:
+    background_art.visible = false
     var root := _new_content()
     root.add_child(_make_label("ТВОЯ КОЛОДА", 30, GOLD))
     root.add_child(_make_label("Карт: %d   •   Золото: %d" % [state.deck.size(), state.gold], 16, MUTED))
@@ -324,6 +343,7 @@ func _show_deck() -> void:
     root.add_child(back)
 
 func _show_reward() -> void:
+    background_art.visible = false
     var root := _new_content()
     root.add_spacer(false)
     root.add_child(_make_label("НАГРАДА", 34, GOLD))
@@ -351,6 +371,7 @@ func _claim_reward(index: int) -> void:
         _show_battle()
 
 func _show_route() -> void:
+    background_art.visible = false
     var root := _new_content()
     root.add_spacer(false)
     root.add_child(_make_label("ВЫБОР ПУТИ", 34, GOLD))
