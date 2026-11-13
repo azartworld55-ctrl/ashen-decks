@@ -1,0 +1,81 @@
+name: Publish Godot version beside the original game
+
+on:
+  push:
+    branches:
+      - godot-rebuild
+    paths:
+      - "godot/**"
+      - ".github/workflows/deploy-godot-preview.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    if: contains(github.event.head_commit.message, '[publish]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Godot version
+        uses: actions/checkout@v4
+
+      - name: Checkout current live site
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-site
+
+      - name: Test current live game
+        working-directory: main-site
+        run: npm test
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Assemble site and preserve original game
+        run: |
+          mkdir -p public/godot
+          rsync -a --exclude='.git' --exclude='.github' --exclude='node_modules' main-site/ public/
+          touch public/.nojekyll
+
+      - name: Validate Godot project
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/godot:/project" \
+            -w /project \
+            barichello/godot-ci:4.4.1 \
+            godot --headless --path /project --editor --quit
+
+      - name: Run full game smoke tests
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/godot:/project" \
+            -w /project \
+            barichello/godot-ci:4.4.1 \
+            godot --headless --path /project --script res://tests/smoke_test.gd
+
+      - name: Export Godot browser build
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/godot:/project" \
+            -v "${{ github.workspace }}/public/godot:/build" \
+            -w /project \
+            barichello/godot-ci:4.4.1 \
+            godot --headless --path /project --export-release "Web" /build/index.html
+
+      - name: Upload combined site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public/
+
+      - name: Deploy combined site
+        id: deployment
+        uses: actions/deploy-pages@v4
