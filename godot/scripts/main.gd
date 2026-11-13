@@ -1,6 +1,7 @@
 extends Control
 
 const RunStateScript = preload("res://scripts/run_state.gd")
+const SaveManagerScript = preload("res://scripts/save_manager.gd")
 const GUARDIAN_ART = preload("res://assets/enemies/ashen_guardian.svg")
 const SCRIBE_ART = preload("res://assets/enemies/drowned_scribe.svg")
 const BISHOP_ART = preload("res://assets/enemies/cinder_bishop.svg")
@@ -161,6 +162,15 @@ func _start_combat() -> void:
 	state.changed.connect(_refresh_battle)
 	state.start_combat()
 	_show_battle()
+
+func _continue_run() -> void:
+\tstate = RunStateScript.new()
+\tif not SaveManagerScript.load_run(state):
+\t\tSaveManagerScript.delete_save()
+\t\t_show_title()
+\t\treturn
+\tstate.changed.connect(_refresh_battle)
+\t_show_battle()
 
 func _show_battle() -> void:
 	result_shown = false
