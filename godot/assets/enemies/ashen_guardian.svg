@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="768" viewBox="0 0 768 768">
+<defs>
+ <radialGradient id="bg"><stop stop-color="#4a3032"/><stop offset=".62" stop-color="#211b27"/><stop offset="1" stop-color="#17141b"/></radialGradient>
+ <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a68b79"/><stop offset=".48" stop-color="#51404a"/><stop offset="1" stop-color="#211d27"/></linearGradient>
+ <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f4c17c"/><stop offset="1" stop-color="#b65348"/></linearGradient>
+ <filter id="blur"><feGaussianBlur stdDeviation="22"/></filter>
+</defs>
+<rect width="768" height="768" fill="url(#bg)"/>
+<circle cx="384" cy="340" r="235" fill="#d07a56" opacity=".12" filter="url(#blur)"/>
+<path d="M170 670 Q210 510 288 455 L480 455 Q560 510 598 670Z" fill="#18151e" stroke="#66505a" stroke-width="8"/>
+<path d="M245 505 L270 338 Q284 255 384 220 Q484 255 498 338 L523 505 L465 610 L303 610Z" fill="url(#armor)" stroke="#c0a18a" stroke-width="10"/>
+<path d="M274 344 Q290 210 384 168 Q478 210 494 344 L445 382 L323 382Z" fill="#302832" stroke="#9a7c70" stroke-width="12"/>
+<path d="M315 324 L354 310 L344 345 L306 356Z M414 310 L453 324 L462 356 L424 345Z" fill="url(#glow)"/>
+<path d="M384 365 L365 426 L384 449 L403 426Z" fill="#17141b" stroke="#90776e" stroke-width="7"/>
+<path d="M260 468 L172 560 L242 575 L315 505Z M508 468 L596 560 L526 575 L453 505Z" fill="#51404a" stroke="#9b8174" stroke-width="9"/>
+<path d="M284 516 L384 570 L484 516 L452 656 L316 656Z" fill="#29232e" stroke="#8c716b" stroke-width="9"/>
+<path d="M310 560 L384 600 L458 560" fill="none" stroke="#d2a06d" stroke-width="8" opacity=".8"/>
+<path d="M220 175 Q260 72 384 90 Q508 72 548 175" fill="none" stroke="#c28a63" stroke-width="13" stroke-linecap="round" opacity=".7"/>
+<path d="M220 175 L192 130 M548 175 L576 130" stroke="#c28a63" stroke-width="9" stroke-linecap="round"/>
+<g fill="#e9a96e" opacity=".9"><circle cx="174" cy="285" r="5"/><circle cx="590" cy="340" r="7"/><circle cx="220" cy="420" r="4"/><circle cx="548" cy="230" r="4"/><circle cx="500" cy="650" r="5"/></g>
+<path d="M112 690 Q384 650 656 690" fill="none" stroke="#8c5b55" stroke-width="5" opacity=".5"/>
+</svg>
