@@ -274,7 +274,12 @@ func _refresh_battle() -> void:
         state.gold, state.draw_pile.size(), state.discard_pile.size()
     ]
     if not state.relics.is_empty():
-        status_label.text += "\nРеликвии: " + " • ".join(state.relics)
+        var relic_text := ""
+        for relic in state.relics:
+            if not relic_text.is_empty():
+                relic_text += " • "
+            relic_text += relic
+        status_label.text += "\nРеликвии: " + relic_text
     enemy_portrait.texture = _get_enemy_art()
     enemy_label.text = "%s\nЗдоровье: %d / %d   •   Блок: %d" % [
         state.enemy_name, state.enemy_hp, state.enemy_max_hp, state.enemy_block
