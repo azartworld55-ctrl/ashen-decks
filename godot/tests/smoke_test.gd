@@ -97,5 +97,30 @@ func _initialize() -> void:
     assert(state.play_card(0), "Final attack should resolve")
     assert(state.phase == "run_victory", "Final boss victory should finish the run")
 
+    var altar_probe = RunStateScript.new()
+    altar_probe.start_combat()
+    altar_probe.enemy_hp = 1
+    altar_probe.hand.clear()
+    altar_probe.hand.append({
+        "name": "Проверка алтаря",
+        "cost": 0,
+        "description": "Проверка усиления.",
+        "type": "attack",
+        "damage": 1,
+        "block": 0,
+        "heal": 0
+    })
+    assert(altar_probe.play_card(0), "Altar test encounter should be winnable")
+    assert(altar_probe.claim_reward(-1), "Altar test should reach route selection")
+    var power_before := 0
+    for card in altar_probe.deck:
+        power_before += int(card.get("damage", 0)) + int(card.get("block", 0)) + int(card.get("heal", 0))
+    assert(not altar_probe.choose_route(99), "Invalid route index should be rejected")
+    assert(altar_probe.choose_route(2), "Ash altar route should resolve")
+    var power_after := 0
+    for card in altar_probe.deck:
+        power_after += int(card.get("damage", 0)) + int(card.get("block", 0)) + int(card.get("heal", 0))
+    assert(power_after > power_before, "Ash altar should improve one card")
+
     print("Godot route, run progression and save tests passed.")
     quit()
